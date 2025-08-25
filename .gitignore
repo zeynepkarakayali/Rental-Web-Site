@@ -1,0 +1,22 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.sln.docstates
+
+# Build Results
+[Bb]in/
+[Oo]bj/
+
+# NuGet
+*.nupkg
+packages/
+*.lock
+
+appsettings.Development.json
+appsettings.Production.json
+appsettings.json
+
+.vscode/
+
+.config/

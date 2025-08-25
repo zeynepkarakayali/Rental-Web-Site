@@ -1,0 +1,39 @@
+﻿@model aracKiralamaDeneme.Areas.Identity.Pages.Account.Manage.PersonalDataModel
+
+<div id="addresses-table">
+    <table class="table table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>Adres 1</th>
+                <th>Şehir</th>
+                <th>Ülke</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Customer?.Addresses != null && Model.Customer.Addresses.Any())
+            {
+                foreach (var address in Model.Customer.Addresses)
+                {
+                    <tr>
+                        <td>@address.AddressLine1</td>
+                        <td>@address.City</td>
+                        <td>@address.Country</td>
+                        <td>
+                            <form method="post" asp-page-handler="DeleteAddress" class="d-inline">
+                                <input type="hidden" name="addressId" value="@address.AddressId" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Sil</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="4" class="text-muted text-center">Adres bulunmamaktadır.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

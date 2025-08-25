@@ -1,0 +1,155 @@
+﻿@model IEnumerable<aracKiralamaDeneme.Models.Vehicle>
+
+@{
+    ViewData["Title"] = "Tüm Araçlarımız";
+}
+
+<div class="container py-5">
+    <h1 class="text-center mb-5 display-4 fw-bold animate__animated animate__fadeInDown">
+        <i class="fas fa-car-alt text-primary me-3"></i> Tüm Araçlarımız
+    </h1>
+
+    <div class="row mb-5 justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm p-4 animate__animated animate__fadeIn">
+                <h2 class="h5 text-center mb-3 text-dark"><i class="fas fa-search me-2"></i> Aracınızı Bulun</h2>
+                <form id="searchForm" class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label for="searchBrand" class="form-label visually-hidden">Marka/Model Ara</label>
+                        <input type="text" class="form-control" id="searchBrand" placeholder="Marka veya Model Ara..." aria-label="Marka veya Model Ara">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="minPrice" class="form-label visually-hidden">Min. Fiyat</label>
+                        <input type="number" class="form-control" id="minPrice" placeholder="Min. Fiyat" aria-label="Minimum Fiyat">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="maxPrice" class="form-label visually-hidden">Max. Fiyat</label>
+                        <input type="number" class="form-control" id="maxPrice" placeholder="Max. Fiyat" aria-label="Maksimum Fiyat">
+                    </div>
+                    <div class="col-12 text-center mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg" id="filterButton">
+                            <i class="fas fa-filter me-2"></i> Filtrele / Ara
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-lg ms-2" onclick="clearFilters()">
+                            <i class="fas fa-sync-alt me-2"></i> Filtreleri Temizle
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+@*     <h2 class="text-center mb-4 text-primary animate__animated animate__fadeInUp" id="vehicleListingSection">
+        @if (Model != null && Model.Any())
+        {
+            <i class="fas fa-list-alt me-2"></i>
+            Mevcut Araçlar
+                }
+        else
+        {
+            <i class="fas fa-info-circle me-2"></i>
+            Araç Bulunamadı
+                }
+    </h2> *@
+
+    <div class="row" id="vehicleCardsContainer">
+        @if (Model != null && Model.Any())
+        {
+            int counter = 0;
+            foreach (var vehicle in Model)
+            {
+                // Her kart için dinamik bir gecikme süresi ekleniyor
+                <div class="col-md-4 mb-4 animate__animated animate__fadeInUp animate__delay-@(counter * 0.1)s">
+                    @await Html.PartialAsync("_VehicleCard", vehicle)
+                </div>
+                counter++;
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center alert alert-warning animate__animated animate__zoomIn" role="alert">
+                <h4 class="alert-heading"><i class="fas fa-exclamation-circle me-2"></i> Üzgünüz!</h4>
+                <p>Şu anda gösterilecek uygun araç bulunmamaktadır. Lütfen daha sonra tekrar deneyin veya filtreleme seçeneklerinizi değiştirin.</p>
+                <hr>
+                <p class="mb-0">Yeni araçlar filomuza eklendikçe burada listelenecektir.</p>
+            </div>
+        }
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        // Filtrele butonu için minimal CSS sınıfı ekleyelim
+        const filterButton = document.getElementById('filterButton');
+        const searchForm = document.getElementById('searchForm');
+
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Butonun rengini hafifçe solgunlaştırıp eski haline getirelim
+            filterButton.style.opacity = '0.7';
+            setTimeout(() => {
+                filterButton.style.opacity = '1';
+            }, 300);
+
+            const searchBrand = document.getElementById('searchBrand').value.toLowerCase();
+            const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
+            const maxPrice = parseFloat(document.getElementById('maxPrice').value) || Infinity;
+
+            const vehicleCards = document.querySelectorAll('#vehicleCardsContainer .col-md-4');
+
+            // Kart animasyonlarını ve görünürlüğünü dinamik olarak yönet
+            let foundVehicles = false;
+            let counter = 0; // Animasyon gecikmesi için yeni sayaç
+
+            vehicleCards.forEach(cardCol => {
+                const brandModel = cardCol.querySelector('.card-title').textContent.toLowerCase();
+                const priceText = cardCol.querySelector('.fw-bold.mb-2').textContent;
+                const price = parseFloat(priceText.replace('₺ / gün', '').replace(',', '.').trim());
+
+                const matchesBrand = brandModel.includes(searchBrand);
+                const matchesPrice = price >= minPrice && price <= maxPrice;
+
+                // Animasyon sınıflarını temizle
+                cardCol.classList.remove('animate__animated', 'animate__fadeInUp', 'animate__delay-0s', 'animate__delay-0.1s', 'animate__delay-0.2s', 'animate__delay-0.3s', 'animate__delay-0.4s', 'animate__delay-0.5s');
+
+                if (matchesBrand && matchesPrice) {
+                    cardCol.style.display = 'block';
+                    // Her kartı filtreleme sonrası tekrar animasyonla getir
+                    cardCol.classList.add('animate__animated', 'animate__fadeInUp');
+                    cardCol.style.animationDelay = `${counter * 0.1}s`;
+                    foundVehicles = true;
+                    counter++;
+                } else {
+                    cardCol.style.display = 'none';
+                }
+            });
+
+            const noVehicleMessage = document.getElementById('noVehicleFoundAlert');
+            if (noVehicleMessage) {
+                noVehicleMessage.remove();
+            }
+
+            if (!foundVehicles) {
+                const container = document.getElementById('vehicleCardsContainer');
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'col-12 text-center alert alert-warning mt-4 animate__animated animate__zoomIn';
+                alertDiv.setAttribute('role', 'alert');
+                alertDiv.id = 'noVehicleFoundAlert';
+                alertDiv.innerHTML = `
+                    <h4 class="alert-heading"><i class="fas fa-exclamation-circle me-2"></i> Arama Sonucu!</h4>
+                    <p>Filtrelerinize uygun araç bulunamadı. Lütfen filtrelerinizi gözden geçirin.</p>
+                `;
+                container.appendChild(alertDiv);
+            }
+        });
+
+        function clearFilters() {
+            document.getElementById('searchBrand').value = '';
+            document.getElementById('minPrice').value = '';
+            document.getElementById('maxPrice').value = '';
+            searchForm.dispatchEvent(new Event('submit'));
+        }
+    </script>
+}

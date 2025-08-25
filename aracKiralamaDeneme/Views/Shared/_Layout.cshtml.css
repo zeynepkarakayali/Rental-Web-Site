@@ -1,0 +1,135 @@
+﻿/* Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
+for details on configuring this project to bundle and minify static web assets. */
+
+/* Sticky Footer için özel CSS */
+html, body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content-wrapper { /* Ana içerik için yeni bir wrapper */
+    flex: 1 0 auto;
+    /* Minimum yükseklik ekleyerek, kısa içeriklerde bile
+       ana içeriğin belirli bir yüksekliği kaplamasını sağlarız. */
+    /* Değişkenleri burada tanımlamamız gerekiyor, çünkü :root seviyesinde olmalıydı,
+       ancak site.css içinde de kullanılabilir. */
+    min-height: calc(100vh - (var(--navbar-height, 70px) + var(--footer-height, 250px) + var(--body-margin-top-bottom, 30px)));
+}
+
+/* Navbar ve Footer yüksekliği için değişkenler */
+/* Bu değişkenleri genellikle bir _variables.scss veya doğrudan _Layout.cshtml'deki <style> içinde tanımlamak daha yaygındır
+   ancak burada da çalışır. */
+:root {
+    --navbar-height: 70px; /* Navigasyon çubuğunuzun yaklaşık yüksekliği */
+    --footer-height: 250px; /* Footer'ınızın yaklaşık yüksekliği (paddingler dahil) */
+    --body-margin-top-bottom: 30px; /* body veya container'daki üst/alt marginler */
+}
+
+/* Container için üst boşluk ekleyelim ki navbar ile yapışık durmasın */
+.container {
+    padding-top: 20px; /* İçeriğin navbar'ın altından başlaması için boşluk */
+    padding-bottom: 20px; /* İçeriğin footer'ın üstünden başlaması için boşluk */
+}
+
+.footer {
+    flex-shrink: 0;
+}
+
+    /* Footer içindeki linklerin rengini iyileştirmek için */
+    .footer a {
+        color: #adb5bd; /* Açık gri */
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+        .footer a:hover {
+            color: #ffffff; /* Beyaz */
+            text-decoration: underline;
+        }
+
+
+/* Mevcut CSS Kodlarınız */
+
+a.navbar-brand {
+    white-space: normal;
+    text-align: center;
+    word-break: break-all;
+}
+
+a {
+    color: #0077cc;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+.border-top {
+    border-top: 1px solid #e5e5e5;
+}
+
+.border-bottom {
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow {
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy {
+    font-size: 1rem;
+    line-height: inherit;
+}
+
+/* Mevcut footer kuralını kaldırın, yukarıdaki yeni `.footer` kuralını kullanacağız */
+/*
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    white-space: nowrap;
+    line-height: 60px;
+}
+*/
+
+.carousel-item {
+    height: 500px;
+}
+
+    .carousel-item img {
+        height: 100%;
+        width: auto;
+        object-fit: contain;
+        margin: auto;
+        display: block;
+        background-color: #000;
+    }
+
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .card:hover {
+        transform: scale(1.01);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+/* Buton hover */
+.btn-animated {
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+    .btn-animated:hover {
+        transform: scale(1.05);
+        background-color: #28a745 !important; /* daha koyu yeşil */
+    }

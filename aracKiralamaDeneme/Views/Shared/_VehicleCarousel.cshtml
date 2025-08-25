@@ -1,0 +1,37 @@
+﻿@model IEnumerable<aracKiralamaDeneme.Models.Vehicle>
+
+<div id="vehicleCarousel" class="carousel slide shadow rounded mb-4" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+        @for (int i = 0; i < Model.Count(); i++)
+        {
+            <button type="button" data-bs-target="#vehicleCarousel" data-bs-slide-to="@i" class="@(i == 0 ? "active" : "")"></button>
+        }
+    </div>
+
+    <div class="carousel-inner">
+        @{
+            int index = 0;
+            foreach (var vehicle in Model)
+            {
+                <div class="carousel-item @(index == 0 ? "active" : "")" style="height: 400px;">
+                    <img src="@vehicle.ImageUrl"
+                         class="d-block mx-auto"
+                         alt="@vehicle.Brand @vehicle.Model"
+                         style="max-height: 100%; object-fit: contain; background-color: #000;">
+                    <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded p-2">
+                        <h5>@vehicle.Brand @vehicle.Model</h5>
+                        <p>@vehicle.ShortDescription</p>
+                    </div>
+                </div>
+                index++;
+            }
+        }
+    </div>
+
+    <button class="carousel-control-prev" type="button" data-bs-target="#vehicleCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#vehicleCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+    </button>
+</div>

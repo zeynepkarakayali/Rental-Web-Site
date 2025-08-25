@@ -1,0 +1,150 @@
+﻿@model aracKiralamaDeneme.Models.ViewModels.CheckoutViewModel
+
+@{
+    ViewData["Title"] = "Kiralama Onayı";
+    var rentalDays = (Model.EndDate - Model.StartDate).Days;
+    var totalPrice = rentalDays * Model.DailyRentalPrice;
+}
+
+<div class="container my-5">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold">Kiralama Onayı</h1>
+        <p class="lead text-muted">Son bir adım kaldı! Lütfen bilgilerinizi kontrol edin ve fatura adresinizi girin.</p>
+    </div>
+
+    <div class="row g-5">
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body p-4">
+                    <h4 class="mb-4">👤 Kişisel Bilgiler</h4>
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-6">
+                            <label class="form-label">Ad</label>
+                            <input type="text" class="form-control" value="@Model.FirstName" readonly disabled>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">Soyad</label>
+                            <input type="text" class="form-control" value="@Model.LastName" readonly disabled>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">E-posta</label>
+                            <input type="email" class="form-control" value="@Model.Email" readonly disabled>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Telefon Numarası</label>
+                            <input type="tel" class="form-control" value="@Model.PhoneNumber" readonly disabled>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h4 class="mb-3">🏠 Fatura Adresi</h4>
+                    <form asp-controller="Rental" asp-action="ConfirmCheckout" method="post" class="needs-validation" novalidate>
+                        <input type="hidden" name="VehicleId" value="@Model.VehicleId" />
+                        <input type="hidden" name="StartDate" value="@Model.StartDate.ToString("yyyy-MM-dd")" />
+                        <input type="hidden" name="EndDate" value="@Model.EndDate.ToString("yyyy-MM-dd")" />
+                        <input type="hidden" name="TotalPrice" value="@totalPrice" />
+                        <input type="hidden" asp-for="FirstName" />
+                        <input type="hidden" asp-for="LastName" />
+                        <input type="hidden" asp-for="Email" />
+                        <input type="hidden" asp-for="PhoneNumber" />
+
+
+                        <div class="mb-3">
+                            <label for="AddressLine1" class="form-label">Adres Satırı 1</label>
+                            <input type="text" class="form-control" id="AddressLine1" name="AddressLine1" value="@Model.AddressLine1" required />
+                            <div class="invalid-feedback">Lütfen adresinizi girin.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="AddressLine2" class="form-label">Adres Satırı 2 <span class="text-muted">(İsteğe Bağlı)</span></label>
+                            <input type="text" class="form-control" id="AddressLine2" name="AddressLine2" value="@Model.AddressLine2" />
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-5 mb-3">
+                                <label for="City" class="form-label">Şehir</label>
+                                <input type="text" class="form-control" id="City" name="City" value="@Model.City" required />
+                                <div class="invalid-feedback">Lütfen bir şehir girin.</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="Country" class="form-label">Ülke</label>
+                                <input type="text" class="form-control" id="Country" name="Country" value="@Model.Country" required />
+                                <div class="invalid-feedback">Lütfen bir ülke girin.</div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="ZipCode" class="form-label">Posta Kodu</label>
+                                <input type="text" class="form-control" id="ZipCode" name="ZipCode" value="@Model.ZipCode" required />
+                                <div class="invalid-feedback">Posta kodu gerekli.</div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <button type="submit" class="w-100 btn btn-success btn-lg">✅ Kiralamayı Onayla ve Tamamla</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 rounded-3 position-sticky" style="top: 2rem;">
+                <div class="card-header bg-primary text-white p-3">
+                    <h4 class="my-0 fw-normal">📋 Kiralama Özeti</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="@Model.ImageUrl" alt="@Model.Brand @Model.Model" class="img-fluid rounded me-3" style="width: 120px; height: 80px; object-fit: cover;">
+                        <div>
+                            <h5 class="mb-0">@Model.Brand @Model.Model</h5>
+                            <small class="text-muted">@Model.PlateNumber</small>
+                        </div>
+                    </div>
+
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            Günlük Ücret
+                            <span>@Model.DailyRentalPrice.ToString("C")</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            Alış Tarihi
+                            <span>@Model.StartDate.ToString("dd MMMM yyyy")</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            Dönüş Tarihi
+                            <span>@Model.EndDate.ToString("dd MMMM yyyy")</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            Toplam Gün
+                            <span>@rentalDays gün</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 bg-light">
+                            <strong class="fs-5">Toplam Tutar</strong>
+                            <strong class="fs-5 text-primary">@totalPrice.ToString("C")</strong>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Bootstrap form validation scripti
+        (function () {
+          'use strict'
+          var forms = document.querySelectorAll('.needs-validation')
+          Array.prototype.slice.call(forms)
+            .forEach(function (form) {
+              form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                  event.preventDefault()
+                  event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+              }, false)
+            })
+        })()
+    </script>
+}

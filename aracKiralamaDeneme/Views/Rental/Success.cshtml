@@ -1,0 +1,51 @@
+﻿@model aracKiralamaDeneme.Models.Rental
+
+@{
+    ViewData["Title"] = "Kiralama Başarılı";
+}
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card shadow-lg border-0 rounded-3 w-100" style="max-width: 800px;">
+        <div class="card-body p-5">
+            <div class="text-center mb-4">
+                <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                <h1 class="card-title mt-3 fw-bold text-success">Kiralama Başarılı!</h1>
+                <p class="text-muted">Tebrikler, kiralamanız başarıyla tamamlandı.</p>
+            </div>
+
+            <div class="alert alert-success text-center mb-4" role="alert">
+                Sayın <strong>@Model.Customer.FirstName @Model.Customer.LastName</strong>, kiralama işleminiz başarıyla kaydedilmiştir.
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="bg-light p-4 rounded-3 h-100">
+                        <h4 class="mb-3 text-secondary">Araç Bilgileri</h4>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><strong>Marka:</strong> @Model.Vehicle.Brand</li>
+                            <li class="mb-2"><strong>Model:</strong> @Model.Vehicle.Model</li>
+                            <li class="mb-2"><strong>Durum:</strong> <span class="badge bg-success">@Model.Vehicle.Status</span></li>
+                            <li class="mb-2"><strong>Günlük Fiyat:</strong> <span class="fw-bold">@Model.Vehicle.DailyRentalPrice ₺</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="bg-light p-4 rounded-3 h-100">
+                        <h4 class="mb-3 text-secondary">Kiralama Detayları</h4>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><strong>Başlangıç Tarihi:</strong> <span class="fw-bold">@Model.StartDate.ToShortDateString()</span></li>
+                            <li class="mb-2"><strong>Bitiş Tarihi:</strong> <span class="fw-bold">@Model.EndDate.ToShortDateString()</span></li>
+                            <li class="mb-2"><strong>Toplam Gün:</strong> <span class="fw-bold">@((Model.EndDate - Model.StartDate).Days)</span></li>
+                            <li class="mb-2"><strong>Toplam Tutar:</strong> <span class="fw-bold fs-5 text-success">@(((Model.EndDate - Model.StartDate).Days) * Model.Vehicle.DailyRentalPrice) ₺</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <a asp-controller="Vehicle" asp-action="Index" class="btn btn-primary btn-lg">← Araç Listesine Dön</a>
+            </div>
+        </div>
+    </div>
+</div>

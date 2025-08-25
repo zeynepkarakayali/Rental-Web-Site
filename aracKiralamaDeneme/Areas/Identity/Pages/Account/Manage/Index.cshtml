@@ -1,0 +1,83 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Profilim";
+    ViewData["ActivePage"] = ManageNavPages.Index;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-12">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Hesap Bilgilerim</h4>
+                </div>
+                <div class="card-body p-4">
+                    <partial name="_StatusMessage" for="StatusMessage" />
+
+                    <form id="profile-form" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+                        <div class="row">
+                            <!-- Sol sütun -->
+                            <div class="col-md-6">
+                                <!-- Kullanıcı Adı -->
+                                <div class="mb-3">
+                                    <label asp-for="Username" class="form-label fw-bold"></label>
+                                    <input asp-for="Username" class="form-control" disabled />
+                                </div>
+
+                                <!-- Ad -->
+                                <div class="mb-3">
+                                    <label asp-for="Input.FirstName" class="form-label fw-bold"></label>
+                                    <input asp-for="Input.FirstName" class="form-control" disabled />
+                                </div>
+
+                                <!-- Soyad -->
+                                <div class="mb-3">
+                                    <label asp-for="Input.LastName" class="form-label fw-bold"></label>
+                                    <input asp-for="Input.LastName" class="form-control" disabled />
+                                </div>
+                            </div>
+
+                            <!-- Sağ sütun -->
+                            <div class="col-md-6">
+                                <!-- Telefon -->
+                                <div class="mb-3">
+                                    <label asp-for="Input.PhoneNumber" class="form-label fw-bold"></label>
+                                    <input asp-for="Input.PhoneNumber" class="form-control" />
+                                    <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+                                </div>
+
+                                <!-- Ehliyet No -->
+                                <div class="mb-3">
+                                    <label asp-for="Input.LicenseNumber" class="form-label fw-bold"></label>
+                                    <input asp-for="Input.LicenseNumber" class="form-control" disabled />
+                                </div>
+
+                                <!-- Ehliyet Türü -->
+                                <div class="mb-3">
+                                    <label asp-for="Input.LicenseType" class="form-label fw-bold"></label>
+                                    <input asp-for="Input.LicenseType" class="form-control" disabled />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Kaydet Butonu -->
+                        <div class="d-grid mt-3">
+                            <button id="update-profile-button" type="submit"
+                                    class="btn btn-success btn-lg btn-animated">
+                                <i class="bi bi-check-circle"></i> Güncelle
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

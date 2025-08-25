@@ -1,0 +1,107 @@
+﻿@page
+@model RegisterModel
+
+@{
+    ViewData["Title"] = "Kayıt Ol";
+}
+
+<div class="container my-5 d-flex justify-content-center">
+    <div class="card shadow-lg border-0 rounded-3" style="max-width: 600px; width: 100%;">
+        <div class="card-body p-4 p-md-5">
+            <div class="text-center mb-4">
+                <h1 class="fw-bold text-dark mb-2">@ViewData["Title"]</h1>
+                <p class="text-muted">Yeni bir hesap oluşturmak için formu doldurun.</p>
+            </div>
+
+            <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.Username" class="form-control" placeholder=" " />
+                            <label asp-for="Input.Username">Kullanıcı Adı</label>
+                            <span asp-validation-for="Input.Username" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.FirstName" class="form-control" placeholder=" " />
+                            <label asp-for="Input.FirstName">Ad</label>
+                            <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.LastName" class="form-control" placeholder=" " />
+                            <label asp-for="Input.LastName">Soyad</label>
+                            <span asp-validation-for="Input.LastName" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.PhoneNumber" class="form-control" placeholder=" " />
+                            <label asp-for="Input.PhoneNumber">Telefon Numarası</label>
+                            <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.LicenseNumber" class="form-control" placeholder=" " />
+                    <label asp-for="Input.LicenseNumber">Ehliyet Numarası</label>
+                    <span asp-validation-for="Input.LicenseNumber" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <select asp-for="Input.LicenseType" class="form-select" aria-label="Ehliyet Tipi Seçin">
+                        <option value="">Ehliyet Tipini Seçin</option>
+                        <option value="A">A - Motosiklet (2 Tekerlekli)</option>
+                        <option value="B">B - Otomobil</option>
+                        <option value="C">C - Kamyon</option>
+                        <option value="D">D - Otobüs</option>
+                        <option value="F">F - Traktör</option>
+                        <option value="G">G - İş Makinesi</option>
+                    </select>
+                    <label asp-for="Input.LicenseType">Ehliyet Tipi</label>
+                    <span asp-validation-for="Input.LicenseType" class="text-danger"></span>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder=" " />
+                    <label asp-for="Input.Email">E-posta Adresi</label>
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder=" " />
+                            <label asp-for="Input.Password">Parola</label>
+                            <span asp-validation-for="Input.Password" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder=" " />
+                            <label asp-for="Input.ConfirmPassword">Parola Doğrulama</label>
+                            <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <button id="registerSubmit" type="submit" class="btn btn-primary btn-lg">Hesap Oluştur</button>
+                    <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="btn btn-outline-secondary btn-lg mt-2">Zaten hesabınız var mı? Giriş yapın.</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

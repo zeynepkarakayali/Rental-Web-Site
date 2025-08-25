@@ -1,0 +1,230 @@
+﻿@page
+@model PersonalDataModel
+@{
+    ViewData["Title"] = "Profilim";
+    ViewData["ActivePage"] = ManageNavPages.PersonalData;
+}
+
+<div class="container my-5">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold text-dark">@ViewData["Title"]</h2>
+        <p class="text-muted lead">Hesap bilgilerinizi ve kiralama geçmişinizi yönetin.</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-4">
+            <div class="card shadow-lg h-100 border-primary border-3">
+                <div class="card-body text-center d-flex flex-column justify-content-between align-items-center p-4">
+                    <i class="bi bi-person-lines-fill text-primary" style="font-size: 3rem;"></i>
+                    <h5 class="card-title fw-bold mt-3">Kişisel Verilerim</h5>
+                    <p class="card-text text-muted small">Adres ve iletişim bilgilerinizi görüntüleyin.</p>
+                    <button class="btn btn-outline-primary btn-lg mt-auto" data-bs-toggle="modal" data-bs-target="#personalDataModal">
+                        Görüntüle
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-lg h-100 border-info border-3">
+                <div class="card-body text-center d-flex flex-column justify-content-between align-items-center p-4">
+                    <i class="bi bi-geo-alt-fill text-info" style="font-size: 3rem;"></i>
+                    <h5 class="card-title fw-bold mt-3">Adreslerim</h5>
+                    <p class="card-text text-muted small">Adreslerinizi ekleyin, güncelleyin veya silin.</p>
+                    <button class="btn btn-outline-info btn-lg mt-auto" data-bs-toggle="modal" data-bs-target="#addressesModal">
+                        Yönet
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-lg h-100 border-success border-3">
+                <div class="card-body text-center d-flex flex-column justify-content-between align-items-center p-4">
+                    <i class="bi bi-car-front-fill text-success" style="font-size: 3rem;"></i>
+                    <h5 class="card-title fw-bold mt-3">Kiraladığım Araçlar</h5>
+                    <p class="card-text text-muted small">Geçmiş ve mevcut kiralamalarınızı takip edin.</p>
+                    <button class="btn btn-outline-success btn-lg mt-auto" data-bs-toggle="modal" data-bs-target="#rentalsModal">
+                        Görüntüle
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="personalDataModal" tabindex="-1" aria-labelledby="personalDataModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content rounded-3 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="personalDataModalLabel">
+                    <i class="bi bi-person-lines-fill me-2"></i>Kişisel Verilerim
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <p>Kişisel verileriniz, gizliliğinizi korumak amacıyla burada gösterilmemektedir. Verilerinizi indirmek için aşağıdaki butonu kullanabilirsiniz.</p>
+                <form id="download-data" asp-page="DownloadPersonalData" method="post">
+                    <button class="btn btn-primary" type="submit">Verilerimi İndir</button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addressesModal" tabindex="-1" aria-labelledby="addressesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content rounded-3 shadow">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="addressesModalLabel"><i class="bi bi-geo-alt-fill me-2"></i>Adreslerim</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-7 pe-3 border-end">
+                        <h5 class="fw-bold mb-3">Kayıtlı Adresler</h5>
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Adres 1</th>
+                                    <th>Şehir</th>
+                                    <th>Ülke</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Customer?.Addresses != null && Model.Customer.Addresses.Any())
+                                {
+                                    foreach (var address in Model.Customer.Addresses)
+                                    {
+                                        <tr>
+                                            <td>@address.AddressLine1</td>
+                                            <td>@address.City</td>
+                                            <td>@address.Country</td>
+                                            <td>
+                                                <form method="post" asp-page-handler="DeleteAddress" class="d-inline">
+                                                    <input type="hidden" name="addressId" value="@address.AddressId" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Bu adresi silmek istediğinize emin misiniz?');">Sil</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="4" class="text-muted text-center">Adres bulunmamaktadır.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="col-md-5 ps-3">
+                        <h5 class="fw-bold mb-3">Yeni Adres Ekle</h5>
+                        <form method="post" asp-page-handler="AddAddress">
+                            <div class="mb-2">
+                                <input asp-for="NewAddressLine1" placeholder="Adres 1" class="form-control" required />
+                            </div>
+                            <div class="mb-2">
+                                <input asp-for="NewAddressLine2" placeholder="Adres 2" class="form-control" />
+                            </div>
+                            <div class="mb-2">
+                                <input asp-for="NewCity" placeholder="Şehir" class="form-control" required />
+                            </div>
+                            <div class="mb-2">
+                                <input asp-for="NewZipCode" placeholder="Posta Kodu" class="form-control" required />
+                            </div>
+                            <div class="mb-3">
+                                <input asp-for="NewCountry" placeholder="Ülke" class="form-control" required />
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-success">Ekle</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="rentalsModal" tabindex="-1" aria-labelledby="rentalsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content rounded-3 shadow">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="rentalsModalLabel"><i class="bi bi-car-front-fill me-2"></i>Kiraladığım Araçlar</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["Success"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+                    </div>
+                }
+
+                @if (Model.Rentals != null && Model.Rentals.Any())
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var rentalDetail in Model.Rentals)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1 fw-bold">@rentalDetail.Rental.Vehicle.Brand @rentalDetail.Rental.Vehicle.Model</h6>
+                                    <small class="text-muted">
+                                        @rentalDetail.StartDate.ToShortDateString() - @rentalDetail.EndDate.ToShortDateString()
+                                    </small>
+                                    <br />
+                                    <span class="badge rounded-pill @(rentalDetail.Status == "İptal" ? "bg-danger" : "bg-primary")">@rentalDetail.Status</span>
+                                </div>
+                                @if (rentalDetail.Status != "İptal")
+                                {
+                                    <form method="post" asp-page-handler="CancelRental" class="cancel-form">
+                                        <input type="hidden" name="id" value="@rentalDetail.RentalId" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">İptal Et</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">İptal Edildi</span>
+                                }
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-center text-muted">Henüz kiralanmış bir aracınız bulunmamaktadır. <a href="/Vehicle/Index">Şimdi kiralayın!</a></p>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const forms = document.querySelectorAll(".cancel-form");
+            forms.forEach(form => {
+                form.addEventListener("submit", function (e) {
+                    const confirmed = confirm("Bu kiralamayı iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz.");
+                    if (!confirmed) {
+                        e.preventDefault();
+                    }
+                });
+            });
+        });
+    </script>
+}
