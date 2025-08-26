@@ -5,7 +5,7 @@
     ViewData["ActivePage"] = ManageNavPages.PersonalData;
 }
 
-<div class="container my-5">
+@* <div class="container my-5">
     <div class="text-center mb-5">
         <h2 class="fw-bold text-dark">@ViewData["Title"]</h2>
         <p class="text-muted lead">Hesap bilgilerinizi ve kiralama geçmişinizi yönetin.</p>
@@ -52,6 +52,7 @@
         </div>
     </div>
 </div>
+
 
 <div class="modal fade" id="personalDataModal" tabindex="-1" aria-labelledby="personalDataModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -212,6 +213,7 @@
     </div>
 </div>
 
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
@@ -227,4 +229,193 @@
             });
         });
     </script>
+} *@
+
+
+<div class="container my-5">
+    <div class="card shadow-lg border-0 rounded-3">
+        <div class="card-body p-4 p-md-5">
+            <h1 class="fw-bold text-dark text-center mb-4">Profilim</h1>
+            <p class="text-muted text-center mb-5">Hesap bilgilerinizi buradan yönetebilirsiniz.</p>
+
+            <div class="accordion" id="profileAccordion">
+
+                <div class="accordion-item mb-3 rounded-3 shadow-sm">
+                    <h2 class="accordion-header" id="headingPersonal">
+                        <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePersonal" aria-expanded="false" aria-controls="collapsePersonal">
+                            Kişisel Bilgilerim
+                        </button>
+                    </h2>
+                    <div id="collapsePersonal" class="accordion-collapse collapse" aria-labelledby="headingPersonal" data-bs-parent="#profileAccordion">
+                        <div class="accordion-body">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><strong>Ad:</strong> @Model.Customer.FirstName</li>
+                                <li class="mb-2"><strong>Soyad:</strong> @Model.Customer.LastName</li>
+                                <li class="mb-2"><strong>E-posta:</strong> @Model.Customer.Email</li>
+                                <li class="mb-2"><strong>Telefon:</strong> @Model.Customer.PhoneNumber</li>
+                                <li class="mb-2"><strong>Ehliyet Numarası:</strong> @Model.Customer.LicenseNumber</li>
+                                <li class="mb-2"><strong>Ehliyet Tipi:</strong> @Model.Customer.LicenseType</li>
+                            </ul>
+                            <button class="btn btn-outline-primary btn-sm">Bilgilerimi Güncelle</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item mb-3 rounded-3 shadow-sm">
+                    <h2 class="accordion-header" id="headingAddresses">
+                        <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAddresses" aria-expanded="false" aria-controls="collapseAddresses">
+                            Adreslerim
+                        </button>
+                    </h2>
+                    <div id="collapseAddresses" class="accordion-collapse collapse" aria-labelledby="headingAddresses" data-bs-parent="#profileAccordion">
+                        <div class="accordion-body">
+                            @if (Model.Customer.Addresses.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Adres</th>
+                                                <th>Şehir</th>
+                                                <th>Posta Kodu</th>
+                                                <th>Ülke</th>
+                                                <th>İşlem</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var address in Model.Customer.Addresses)
+                                            {
+                                                <tr>
+                                                    <td>@address.AddressLine1 @address.AddressLine2</td>
+                                                    <td>@address.City</td>
+                                                    <td>@address.ZipCode</td>
+                                                    <td>@address.Country</td>
+                                                    <td>
+                                                        <form method="post" asp-page-handler="DeleteAddress" onsubmit="return confirm('Bu adresi silmek istediğinize emin misiniz?');">
+                                                            <input type="hidden" name="addressId" value="@address.AddressId" />
+                                                            <button type="submit" class="btn btn-danger btn-sm">Sil</button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted text-center">Henüz kayıtlı bir adresiniz bulunmamaktadır.</p>
+                            }
+
+                            <h6 class="mt-4 mb-3">Yeni Adres Ekle</h6>
+                            <form method="post" asp-page-handler="AddAddress" class="row g-3">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" placeholder="Adres 1" asp-for="NewAddressLine1" required />
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" placeholder="Adres 2 (Opsiyonel)" asp-for="NewAddressLine2" />
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" placeholder="Şehir" asp-for="NewCity" required />
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" placeholder="Posta Kodu" asp-for="NewZipCode" required />
+                                </div>
+                                <div class="col-12">
+                                    <input type="text" class="form-control" placeholder="Ülke" asp-for="NewCountry" required />
+                                </div>
+                                <div class="col-12 text-end">
+                                    <button type="submit" class="btn btn-success">Adres Ekle</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item rounded-3 shadow-sm">
+                    <h2 class="accordion-header" id="headingRentals">
+                        <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRentals" aria-expanded="false" aria-controls="collapseRentals">
+                            Kiraladıklarım
+                        </button>
+                    </h2>
+                    <div id="collapseRentals" class="accordion-collapse collapse" aria-labelledby="headingRentals" data-bs-parent="#profileAccordion">
+                        <div class="accordion-body">
+                            @if (Model.Rentals != null && Model.Rentals.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Araç</th>
+                                                <th>Başlangıç Tarihi</th>
+                                                <th>Bitiş Tarihi</th>
+                                                <th>Durum</th>
+                                                <th>İşlem</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var rentalDetail in Model.Rentals)
+                                            {
+                                                var endDate = rentalDetail.Rental.EndDate;
+                                                string statusText;
+                                                string statusClass;
+
+                                                if (rentalDetail.Status == "İptal")
+                                                {
+                                                    statusText = "İptal";
+                                                    statusClass = "bg-danger";
+                                                }
+                                                else if (endDate < DateTime.Today)
+                                                {
+                                                    statusText = "Tamamlandı";
+                                                    statusClass = "bg-success";
+                                                }
+                                                else
+                                                {
+                                                    statusText = "Devam Ediyor";
+                                                    statusClass = "bg-primary";
+                                                }
+
+                                                <tr>
+                                                    <td>@rentalDetail.Rental.Vehicle.Brand @rentalDetail.Rental.Vehicle.Model</td>
+                                                    <td>@rentalDetail.Rental.StartDate.ToShortDateString()</td>
+                                                    <td>@endDate.ToShortDateString()</td>
+                                                    <td>
+                                                        <span class="badge @statusClass">@statusText</span>
+                                                    </td>
+                                                    <td>
+                                                        @if (statusText == "Devam Ediyor")
+                                                        {
+                                                            <form method="post" asp-page-handler="CancelRental"
+                                                                  onsubmit="return confirm('Bu kiralamayı iptal etmek istediğinize emin misiniz?');">
+                                                                <input type="hidden" name="id" value="@rentalDetail.RentalId" />
+                                                                <button type="submit" class="btn btn-warning btn-sm">İptal Et</button>
+                                                            </form>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted small">İşlem Yok</span>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted text-center">Henüz kiralama yapmadınız.</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
 }

@@ -218,10 +218,10 @@ namespace aracKiralamaDeneme.Controllers
         [HttpGet]
         public IActionResult GetUnavailableDates(int vehicleId)
         {
-            // Araç kiralamalarını al
-            var rentals = _context.Rentals
-                .Where(r => r.VehicleId == vehicleId)
-                .Select(r => new { r.StartDate, r.EndDate })
+            var rentals = _context.RentalDetails
+                .Include(rd => rd.Rental)
+                .Where(rd => rd.Rental.VehicleId == vehicleId && rd.Status != "İptal")
+                .Select(rd => new { rd.StartDate, rd.EndDate })
                 .ToList();
 
             // Tarihleri diziye çevir
@@ -236,7 +236,5 @@ namespace aracKiralamaDeneme.Controllers
 
             return Json(dates);
         }
-
-
     }
 }

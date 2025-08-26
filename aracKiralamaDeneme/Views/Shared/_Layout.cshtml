@@ -110,17 +110,7 @@
         </div>
     </div>
 
-
-
-
-    <div class="main-content-wrapper">
-        @* Yeni wrapper eklendi *@
-        <div class="container">
-            @RenderBody()
-        </div>
-    </div>
-
-    @RenderSection("Scripts", required: false)
+    @* @RenderSection("Scripts", required: false) *@
 
     <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -137,6 +127,13 @@
                     <button type="button" class="btn btn-danger" onclick="document.getElementById('logoutForm').submit();">Evet, Çıkış Yap</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="main-content-wrapper">
+        @* Yeni wrapper eklendi *@
+        <div class="container">
+            @RenderBody()
         </div>
     </div>
 
@@ -181,7 +178,9 @@
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+
+@*     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script> *@
     <script>
         // Modal ile çıkış zaten halihazırda var, bu kısım gereksiz hale geldi
         // function confirmLogout() {
@@ -201,5 +200,11 @@
           asp-route-returnUrl="@(Context.Request.Path + Context.Request.QueryString)"
           method="post">
     </form>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
