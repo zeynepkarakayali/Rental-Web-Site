@@ -1,24 +1,36 @@
+using aracKiralamaDeneme.Areas.IdentityStores;
 using aracKiralamaDeneme.Models;
-using aracKiralamaDeneme.Repositories.Implementations;
-using aracKiralamaDeneme.Repositories.Interfaces;
+using aracKiralamaDeneme.Repositories;
 using aracKiralamaDeneme.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<CarRentalContext>(options =>
-    options.UseSqlServer(connectionString)
-);
+//builder.Services.AddDbContext<CarRentalContext>(options =>
+//    options.UseSqlServer(connectionString)
+//);
+builder.Services.AddScoped<IDbConnection>(sp =>
+    new SqlConnection(connectionString));
+
 
 // Identity ayarları
-builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
+builder.Services.AddScoped<IPasswordHasher<ApplicationUser>, PasswordHasher<ApplicationUser>>();
+builder.Services.AddScoped<IUserStore<ApplicationUser>, DapperUserStore>();
+builder.Services.AddScoped<IRoleStore<IdentityRole>, DapperRoleStore>();
+
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
-    options.SignIn.RequireConfirmedAccount = false;
+    options.SignIn.RequireConfirmedAccount = true;
 })
-.AddRoles<IdentityRole>()
-.AddEntityFrameworkStores<CarRentalContext>();
+.AddDefaultTokenProviders();
+
+
+builder.Services.AddRazorPages();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -27,9 +39,10 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient<CurrencyService>();
 builder.Services.AddHttpClient<WeatherService>();
 builder.Services.AddScoped<IRentalService, RentalService>();
-builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
-builder.Services.AddScoped<IRentalRepository, RentalRepository>();
-builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<VehicleRepository>();
+builder.Services.AddScoped<RentalRepository>();
+builder.Services.AddScoped<CustomerRepository>();
+builder.Services.AddSingleton<IEmailSender, EmailSender>();
 
 
 var app = builder.Build();
@@ -56,9 +69,9 @@ app.MapControllerRoute(
 
 app.MapRazorPages();
 
-using (var scope = app.Services.CreateScope())
-{
-    DbInitializer.InitializeAsync(scope.ServiceProvider).GetAwaiter().GetResult();
-}
+//using (var scope = app.Services.CreateScope())
+//{
+//    DbInitializer.InitializeAsync(scope.ServiceProvider).GetAwaiter().GetResult();
+//}
 
 app.Run();

@@ -1,31 +1,34 @@
 ﻿using aracKiralamaDeneme.Models;
 using aracKiralamaDeneme.Models.ViewModels;
+using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Data;
 
 namespace aracKiralamaDeneme.Controllers
 {
     public class VehicleController : Controller
     {
-        private readonly CarRentalContext _context;
+        private readonly IDbConnection _db;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public VehicleController(CarRentalContext context, UserManager<ApplicationUser> userManager)
+        public VehicleController(IDbConnection db, UserManager<ApplicationUser> userManager)
         {
-            _context = context;
+            _db = db;
             _userManager = userManager;
         }
 
-        // /Vehicle
-        public IActionResult Index()
+        // Vehicle
+        public async Task<IActionResult> Index()
         {
-            var vehicles = _context.Vehicles.ToList();
-
+            // SP: GetAllVehicles
+            var vehicles = await _db.QueryAsync<Vehicle>("EXEC GetAllVehicles");
             return View(vehicles);
         }
+
 
         //public IActionResult Details(int id)
         //{
@@ -41,55 +44,28 @@ namespace aracKiralamaDeneme.Controllers
 
         public async Task<IActionResult> Details(int id)
         {
-            //Vehicle vehicle = null;
+            // SP: GetVehicleById
+            var vehicle = await _db.QuerySingleOrDefaultAsync<Vehicle>(
+                "EXEC GetVehicleById @Id",
+                new { Id = id }
+            );
 
-            //// Önce Car mı diye kontrol edelim
-            //vehicle = await _context.Vehicles
-            //    .OfType<Car>()
-            //    .FirstOrDefaultAsync(v => v.VehicleId == id);
-
-            //if (vehicle == null)
-            //{
-            //    // Car değilse Motorcycle mı diye bak
-            //    vehicle = await _context.Vehicles
-            //        .OfType<Motorcycle>()
-            //        .FirstOrDefaultAsync(v => v.VehicleId == id);
-            //}
-
-            //if (vehicle == null)
-            //{
-            //    // Truck mı diye bak
-            //    vehicle = await _context.Vehicles
-            //        .OfType<Truck>()
-            //        .FirstOrDefaultAsync(v => v.VehicleId == id);
-            //}
-
-            //if (vehicle == null)
-            //    return NotFound();
-
-            var vehicle = await _context.Vehicles.FirstOrDefaultAsync(v => v.VehicleId == id);
             if (vehicle == null)
-            {
                 return NotFound();
-            }
 
-            // Login olmuş user'ı al
             var user = await _userManager.GetUserAsync(User);
             Customer customer = null;
             if (user != null)
             {
-                customer = await _context.Customers
-                    .FirstOrDefaultAsync(c => c.ApplicationUserId == user.Id);
+                // SP: GetCustomerByUserId
+                customer = await _db.QuerySingleOrDefaultAsync<Customer>(
+                    "EXEC GetCustomerByUserId @UserId",
+                    new { UserId = user.Id }
+                );
             }
 
-            // Ehliyet uyum kontrolü
-            bool canRent = false;
-            if (customer != null)
-            {
-                canRent = IsLicenseValidForVehicle(customer.LicenseType, vehicle);
-            }
+            bool canRent = customer != null && IsLicenseValidForVehicle(customer.LicenseType, vehicle);
 
-            // ViewModel oluştur
             var viewModel = new VehicleDetailsViewModel
             {
                 Vehicle = vehicle,
@@ -191,47 +167,36 @@ namespace aracKiralamaDeneme.Controllers
         //    return Json(new { available = isAvailable, message = statusMessage });
         //}
 
+
         [HttpGet]
         public async Task<IActionResult> CheckAvailability(int vehicleId, DateTime startDate, DateTime endDate)
         {
-            var hasActiveRental = await _context.RentalDetails
-                .Include(rd => rd.Rental)
-                .AnyAsync(rd => rd.Rental.VehicleId == vehicleId
-                             && rd.Status != "İptal"   // 🔹 iptal edilenler hesaba katılmıyor
-                             && (
-                                    (startDate >= rd.StartDate && startDate <= rd.EndDate) ||
-                                    (endDate >= rd.StartDate && endDate <= rd.EndDate) ||
-                                    (startDate <= rd.StartDate && endDate >= rd.EndDate)
-                                )
-                );
+            // SP: CheckVehicleAvailability
+            var hasActiveRental = await _db.QueryFirstOrDefaultAsync<int>(
+                "EXEC CheckVehicleAvailability @VehicleId, @StartDate, @EndDate",
+                new { VehicleId = vehicleId, StartDate = startDate, EndDate = endDate }
+            );
 
-            if (hasActiveRental)
-            {
+            if (hasActiveRental > 0)
                 return Json(new { available = false, message = "Dolu" });
-            }
             else
-            {
                 return Json(new { available = true, message = "Boşta" });
-            }
         }
 
         [HttpGet]
-        public IActionResult GetUnavailableDates(int vehicleId)
+        public async Task<IActionResult> GetUnavailableDates(int vehicleId)
         {
-            var rentals = _context.RentalDetails
-                .Include(rd => rd.Rental)
-                .Where(rd => rd.Rental.VehicleId == vehicleId && rd.Status != "İptal")
-                .Select(rd => new { rd.StartDate, rd.EndDate })
-                .ToList();
+            // SP: GetRentalDatesByVehicle
+            var rentals = await _db.QueryAsync<(DateTime StartDate, DateTime EndDate)>(
+                "EXEC GetRentalDatesByVehicle @VehicleId",
+                new { VehicleId = vehicleId }
+            );
 
-            // Tarihleri diziye çevir
             var dates = new List<string>();
             foreach (var r in rentals)
             {
                 for (var d = r.StartDate; d <= r.EndDate; d = d.AddDays(1))
-                {
                     dates.Add(d.ToString("yyyy-MM-dd"));
-                }
             }
 
             return Json(dates);

@@ -1,6 +1,6 @@
 ﻿using aracKiralamaDeneme.Models;
 using aracKiralamaDeneme.Models.ViewModels;
-using aracKiralamaDeneme.Repositories.Interfaces;
+using aracKiralamaDeneme.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
@@ -9,21 +9,18 @@ namespace aracKiralamaDeneme.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly CarRentalContext _context;
+        private readonly VehicleRepository _vehicleRepository;
 
-        public HomeController(CarRentalContext context)
+        public HomeController(VehicleRepository vehicleRepository)
         {
-            _context = context;
+            _vehicleRepository = vehicleRepository;
         }
 
         // GET: /Home/Index
         public async Task<IActionResult> Index()
         {
             // Tüm araçları çek
-            var vehicles = await _context.Vehicles
-                .AsNoTracking()
-                .ToListAsync();
-
+            var vehicles = await _vehicleRepository.GetAllAsync();
             return View(vehicles);
         }
 

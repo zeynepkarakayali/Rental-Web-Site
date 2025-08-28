@@ -1,0 +1,10 @@
+﻿CREATE PROCEDURE GetAllVehicles
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT * FROM Vehicles;
+END
+GO
+
+EXEC GetAllVehicles
