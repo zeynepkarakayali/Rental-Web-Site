@@ -3,12 +3,14 @@
 #nullable disable
 
 using aracKiralamaDeneme.Models;
+using Dapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Data;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 
@@ -18,16 +20,16 @@ namespace aracKiralamaDeneme.Areas.Identity.Pages.Account.Manage
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly CarRentalContext _context;
+        private readonly IDbConnection _connection;
 
         public IndexModel(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            CarRentalContext context)
+            IDbConnection connection)
         {
             _userManager = userManager;
             _signInManager = signInManager;
-            _context = context;
+            _connection = connection;
         }
 
         /// <summary>
@@ -82,10 +84,11 @@ namespace aracKiralamaDeneme.Areas.Identity.Pages.Account.Manage
         private async Task LoadAsync(ApplicationUser user)
         {
             var userName = await _userManager.GetUserNameAsync(user);
-            // var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
 
-            var customer = await _context.Customers
-                .FirstOrDefaultAsync(c => c.ApplicationUserId == user.Id);
+            var customer = await _connection.QueryFirstOrDefaultAsync<Customer>(
+                "GetCustomerByUserId",
+                new { UserId = user.Id },
+                commandType: CommandType.StoredProcedure);
 
             Username = userName;
 
@@ -98,6 +101,7 @@ namespace aracKiralamaDeneme.Areas.Identity.Pages.Account.Manage
                 PhoneNumber = customer?.PhoneNumber
             };
         }
+
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -135,26 +139,17 @@ namespace aracKiralamaDeneme.Areas.Identity.Pages.Account.Manage
                 await LoadAsync(user);
                 return Page();
             }
-            // Customer kaydını bul
-            var customer = await _context.Customers
-                .FirstOrDefaultAsync(c => c.ApplicationUserId == user.Id);
 
-            if (customer != null)
-            {
-                customer.PhoneNumber = Input.PhoneNumber;
-                // degerler NULL gitmesin, sadece güncellenecek alanları değiştir
-                customer.FirstName = customer.FirstName; // dokunma
-                customer.LastName = customer.LastName;   // dokunma
-                customer.LicenseNumber = customer.LicenseNumber;
-                customer.LicenseType = customer.LicenseType;
-                customer.Email = customer.Email; // aynı kalsın
-
-                await _context.SaveChangesAsync();
-            }
+            // SP ile güncelle
+            await _connection.ExecuteAsync(
+                "SP_UpdateCustomerPhone",
+                new { UserId = user.Id, PhoneNumber = Input.PhoneNumber },
+                commandType: CommandType.StoredProcedure);
 
             await _signInManager.RefreshSignInAsync(user);
             StatusMessage = "Profiliniz güncellendi.";
             return RedirectToPage();
         }
+
     }
 }

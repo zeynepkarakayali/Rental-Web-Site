@@ -1,12 +1,15 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 using aracKiralamaDeneme.Models;
+using aracKiralamaDeneme.Models.DTO;
+using Dapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Data;
 using System.Threading.Tasks;
 
 namespace aracKiralamaDeneme.Areas.Identity.Pages.Account.Manage
@@ -15,20 +18,22 @@ namespace aracKiralamaDeneme.Areas.Identity.Pages.Account.Manage
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<PersonalDataModel> _logger;
-        private readonly CarRentalContext _context;
+        private readonly IDbConnection _connection;
 
         public PersonalDataModel(
             UserManager<ApplicationUser> userManager,
             ILogger<PersonalDataModel> logger,
-            CarRentalContext context)
+            IDbConnection connection)
         {
             _userManager = userManager;
             _logger = logger;
-            _context = context;
+            _connection = connection;
         }
 
         public Customer Customer { get; set; }
-        public List<RentalDetails> Rentals { get; set; }
+        //public List<RentalDetails> Rentals { get; set; }
+        public List<RentalWithDetailsDto> Rentals { get; set; } = new();
+
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -37,21 +42,28 @@ namespace aracKiralamaDeneme.Areas.Identity.Pages.Account.Manage
             {
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
             }
-            // Customer'ı ve ilişkili Rentals ve RentalDetails'i çek
-            var customer = await _context.Customers
-                .Include(c => c.Addresses)
-                .FirstOrDefaultAsync(c => c.ApplicationUserId == user.Id);
+            // Customer ve Address'leri SP ile çek
+            Customer = await _connection.QueryFirstOrDefaultAsync<Customer>(
+                "GetCustomerByUserId",
+                new { UserId = user.Id },
+                commandType: CommandType.StoredProcedure
+            );
 
-            if (customer != null)
+            if (Customer != null)
             {
-                Customer = customer;
+                // Adresleri yükle
+                Customer.Addresses = (await _connection.QueryAsync<Address>(
+                    "GetAddressesByCustomerId",
+                    new { CustomerId = Customer.CustomerId },
+                    commandType: CommandType.StoredProcedure
+                )).ToList();
 
-                // Müşterinin kiraladığı araçları ve araç bilgilerini yükle
-                Rentals = await _context.RentalDetails
-                    .Include(rd => rd.Rental)
-                        .ThenInclude(r => r.Vehicle)  // Kiralanan araç bilgisi
-                    .Where(rd => rd.Rental.CustomerId == customer.CustomerId)
-                    .ToListAsync();
+                // Kiralamaları DTO ile yükle
+                Rentals = (await _connection.QueryAsync<RentalWithDetailsDto>(
+                    "GetCustomerRentals",
+                    new { CustomerId = Customer.CustomerId },
+                    commandType: CommandType.StoredProcedure
+                )).ToList();
             }
 
             return Page();
@@ -69,69 +81,59 @@ namespace aracKiralamaDeneme.Areas.Identity.Pages.Account.Manage
         [BindProperty]
         public string NewCountry { get; set; }
 
+        // OnPostAddAddressAsync
         public async Task<IActionResult> OnPostAddAddressAsync()
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return NotFound();
 
-            var customer = await _context.Customers
-                .Include(c => c.Addresses)
-                .FirstOrDefaultAsync(c => c.ApplicationUserId == user.Id);
+            var customer = await _connection.QueryFirstOrDefaultAsync<Customer>(
+                "GetCustomerByUserId",
+                new { UserId = user.Id },
+                commandType: CommandType.StoredProcedure);
+
             if (customer == null) return NotFound();
 
-            var address = new Address
-            {
-                CustomerId = customer.CustomerId,
-                AddressLine1 = NewAddressLine1,
-                AddressLine2 = NewAddressLine2,
-                City = NewCity,
-                ZipCode = NewZipCode,
-                Country = NewCountry
-            };
+            await _connection.ExecuteAsync(
+                "AddAddress", // eski AddAddress yerine yeni SP
+                new
+                {
+                    CustomerId = customer.CustomerId,
+                    AddressLine1 = NewAddressLine1,
+                    AddressLine2 = NewAddressLine2,
+                    City = NewCity,
+                    ZipCode = NewZipCode,
+                    Country = NewCountry
+                },
+                commandType: CommandType.StoredProcedure);
 
-            _context.Addresses.Add(address);
-            await _context.SaveChangesAsync();
-
-            // **Redirect kullanarak OnGetAsync tekrar çalışsın**
             return RedirectToPage();
         }
 
-        // Adres silme
+
+        // Adres Silme
         public async Task<IActionResult> OnPostDeleteAddressAsync(int addressId)
         {
-            var address = await _context.Addresses.FindAsync(addressId);
-            if (address != null)
-            {
-                _context.Addresses.Remove(address);
-                await _context.SaveChangesAsync();
-            }
+            await _connection.ExecuteAsync(
+                "DeleteAddress",
+                new { AddressId = addressId },
+                commandType: CommandType.StoredProcedure);
+
             return RedirectToPage();
         }
 
+
+        // OnPostCancelRentalAsync
         public async Task<IActionResult> OnPostCancelRentalAsync(int id)
         {
-            var rental = await _context.Rentals
-                .Include(r => r.Vehicle)
-                .Include(r => r.RentalDetails)
-                .FirstOrDefaultAsync(r => r.RentalId == id);
-
-            if (rental == null)
-            {
-                TempData["Error"] = "Kiralama bulunamadı.";
-                return RedirectToPage(); // Aynı sayfada kal
-            }
-
-            foreach (var detail in rental.RentalDetails)
-                detail.Status = "İptal";
-
-            rental.Vehicle.Status = "Müsait";
-
-            _context.Update(rental);
-            await _context.SaveChangesAsync();
+            // RentalDetails ve Vehicle durumlarını güncelle
+            await _connection.ExecuteAsync(
+                "CancelRental",
+                new { RentalId = id },
+                commandType: CommandType.StoredProcedure);
 
             TempData["Success"] = "Kiralama iptal edildi.";
-            return RedirectToPage(); // Aynı sayfada kal
+            return RedirectToPage();
         }
-
     }
 }

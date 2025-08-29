@@ -25,7 +25,7 @@ builder.Services.AddScoped<IRoleStore<IdentityRole>, DapperRoleStore>();
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
-    options.SignIn.RequireConfirmedAccount = true;
+    options.SignIn.RequireConfirmedAccount = false; // development asamasinda email dogrulamasini atlamak icin
 })
 .AddDefaultTokenProviders();
 

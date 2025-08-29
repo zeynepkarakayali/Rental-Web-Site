@@ -115,7 +115,12 @@ namespace aracKiralamaDeneme.Areas.Identity.Pages.Account
 
                 if (user != null)
                 {
-                    var result = await _signInManager.PasswordSignInAsync(user.UserName, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+                    //var result = await _signInManager.PasswordSignInAsync(user.UserName, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+                    var result = await _signInManager.PasswordSignInAsync(
+                        user, // artık direkt user nesnesi
+                        Input.Password,
+                        Input.RememberMe,
+                        lockoutOnFailure: false);
 
                     if (result.Succeeded)
                     {

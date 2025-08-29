@@ -269,7 +269,7 @@
                     </h2>
                     <div id="collapseAddresses" class="accordion-collapse collapse" aria-labelledby="headingAddresses" data-bs-parent="#profileAccordion">
                         <div class="accordion-body">
-                            @if (Model.Customer.Addresses.Any())
+                            @if (Model.Customer.Addresses != null && Model.Customer.Addresses.Any())
                             {
                                 <div class="table-responsive">
                                     <table class="table table-striped table-hover">
@@ -332,6 +332,7 @@
                     </div>
                 </div>
 
+
                 <div class="accordion-item rounded-3 shadow-sm">
                     <h2 class="accordion-header" id="headingRentals">
                         <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRentals" aria-expanded="false" aria-controls="collapseRentals">
@@ -350,22 +351,22 @@
                                                 <th>Başlangıç Tarihi</th>
                                                 <th>Bitiş Tarihi</th>
                                                 <th>Durum</th>
+                                                <th>Toplam Fiyat</th>
                                                 <th>İşlem</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach (var rentalDetail in Model.Rentals)
+                                            @foreach (var rental in Model.Rentals)
                                             {
-                                                var endDate = rentalDetail.Rental.EndDate;
                                                 string statusText;
                                                 string statusClass;
 
-                                                if (rentalDetail.Status == "İptal")
+                                                if (rental.Status == "İptal")
                                                 {
                                                     statusText = "İptal";
                                                     statusClass = "bg-danger";
                                                 }
-                                                else if (endDate < DateTime.Today)
+                                                else if (rental.EndDate < DateTime.Today)
                                                 {
                                                     statusText = "Tamamlandı";
                                                     statusClass = "bg-success";
@@ -377,18 +378,19 @@
                                                 }
 
                                                 <tr>
-                                                    <td>@rentalDetail.Rental.Vehicle.Brand @rentalDetail.Rental.Vehicle.Model</td>
-                                                    <td>@rentalDetail.Rental.StartDate.ToShortDateString()</td>
-                                                    <td>@endDate.ToShortDateString()</td>
+                                                    <td>@rental.Brand @rental.Model</td>
+                                                    <td>@rental.StartDate.ToShortDateString()</td>
+                                                    <td>@rental.EndDate.ToShortDateString()</td>
                                                     <td>
                                                         <span class="badge @statusClass">@statusText</span>
                                                     </td>
+                                                    <td>@rental.TotalPrice.ToString("C")</td>
                                                     <td>
                                                         @if (statusText == "Devam Ediyor")
                                                         {
                                                             <form method="post" asp-page-handler="CancelRental"
                                                                   onsubmit="return confirm('Bu kiralamayı iptal etmek istediğinize emin misiniz?');">
-                                                                <input type="hidden" name="id" value="@rentalDetail.RentalId" />
+                                                                <input type="hidden" name="id" value="@rental.RentalId" />
                                                                 <button type="submit" class="btn btn-warning btn-sm">İptal Et</button>
                                                             </form>
                                                         }
@@ -410,6 +412,7 @@
                         </div>
                     </div>
                 </div>
+
 
             </div>
         </div>

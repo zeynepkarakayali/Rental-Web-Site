@@ -2,23 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Text.Encodings.Web;
-using System.Threading;
-using System.Threading.Tasks;
+using aracKiralamaDeneme.Models;
+using Dapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using aracKiralamaDeneme.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Data;
+using System.Linq;
+using System.Text;
+using System.Text.Encodings.Web;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace aracKiralamaDeneme.Areas.Identity.Pages.Account
 {
@@ -30,8 +32,7 @@ namespace aracKiralamaDeneme.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<ApplicationUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
-
-        private readonly CarRentalContext _context;
+        private readonly IDbConnection _connection;
 
         public RegisterModel(
             UserManager<ApplicationUser> userManager,
@@ -39,7 +40,7 @@ namespace aracKiralamaDeneme.Areas.Identity.Pages.Account
             SignInManager<ApplicationUser> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender,
-            CarRentalContext context)
+            IDbConnection connection)
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -47,7 +48,7 @@ namespace aracKiralamaDeneme.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
-            _context = context;
+            _connection = connection;
         }
 
         /// <summary>
@@ -118,6 +119,7 @@ namespace aracKiralamaDeneme.Areas.Identity.Pages.Account
             public string LicenseNumber { get; set; }
             public string LicenseType { get; set; }
             public string PhoneNumber { get; set; }
+            public int AddressId { get; set; }
         }
 
 
@@ -138,23 +140,46 @@ namespace aracKiralamaDeneme.Areas.Identity.Pages.Account
                     UserName = Input.Username,
                     Email = Input.Email,
                     PhoneNumber = Input.PhoneNumber,
-                    Customer = new Customer
-                    {
-                        FirstName = Input.FirstName,
-                        LastName = Input.LastName,
-                        LicenseNumber = Input.LicenseNumber,
-                        LicenseType = Input.LicenseType,
-                        PhoneNumber = Input.PhoneNumber,
-                        Email = Input.Email
-                    }
+                    //Customer = new Customer
+                    //{
+                    //    FirstName = Input.FirstName,
+                    //    LastName = Input.LastName,
+                    //    LicenseNumber = Input.LicenseNumber,
+                    //    LicenseType = Input.LicenseType,
+                    //    PhoneNumber = Input.PhoneNumber,
+                    //    Email = Input.Email
+                    //}
+                    // EF Core Customer ilişkisini kaldırıyoruz, çünkü SP ile ekleyeceğiz
+
+                    NormalizedUserName = Input.Username.ToUpperInvariant(),
+                    NormalizedEmail = Input.Email.ToUpperInvariant()
                 };
 
+                var hasher = new PasswordHasher<ApplicationUser>();
+                user.PasswordHash = hasher.HashPassword(user, Input.Password);
 
+                //var result = await _userManager.CreateAsync(user, Input.Password);
                 var result = await _userManager.CreateAsync(user, Input.Password);
 
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with password.");
+
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@UserId", user.Id);
+                    parameters.Add("@FirstName", Input.FirstName);
+                    parameters.Add("@LastName", Input.LastName);
+                    parameters.Add("@LicenseNumber", Input.LicenseNumber);
+                    parameters.Add("@LicenseType", Input.LicenseType);
+                    parameters.Add("@PhoneNumber", Input.PhoneNumber);
+                    parameters.Add("@Email", Input.Email);
+                    parameters.Add("@AddressId", Input.AddressId);
+
+                    await _connection.ExecuteAsync(
+                        "AddCustomer",
+                        parameters,
+                        commandType: CommandType.StoredProcedure
+                    );
 
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
